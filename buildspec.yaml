@@ -1,0 +1,10 @@
+version: 0.1
+phases:
+  install:
+    commands:
+      - aws cloudformation package --template-file samTemplate.yaml --s3-bucket announcement-lamda-code --output-template-file Announcement_Stack_template.yaml
+artifacts:
+  type: zip
+  files:
+    - samTemplate.yaml
+    - Announcement_Stack_template.yaml
