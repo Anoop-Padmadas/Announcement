@@ -76,6 +76,9 @@ Resources:
       FunctionName: AnnouncementMicroService
       Handler: AnnouncementService.lambda_handler
       Runtime: python3.8
+      Environment: 
+         Variables: 
+            defaultLimit: 5
       Role: !GetAtt AnnouncementMSIAMRole.Arn
   #AnnouncementGetService:
   #  Type: 'AWS::Lambda::Function'
@@ -164,6 +167,9 @@ Resources:
       MethodResponses:
         - StatusCode: 200
       Integration:
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestTemplates: 
+           "application/json": "#set($allParams = $input.params()) \n {\n \"body-json\" : $input.json('$'),\n \"params\" : {\n #foreach($type in $allParams.keySet()) \n #set($params = $allParams.get($type)) \n \"$type\" : { \n #foreach($paramName in $params.keySet()) \n \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\" \n #if($foreach.hasNext),#end \n #end \n } \n #if($foreach.hasNext),#end \n#end \n},\n \"context\" : { \n \"http-method\" : \"$context.httpMethod\" \n } \n}"
         IntegrationHttpMethod: POST
         IntegrationResponses:
           - StatusCode: 200
@@ -190,6 +196,9 @@ Resources:
       MethodResponses:
         - StatusCode: 200
       Integration:
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestTemplates: 
+           "application/json": "#set($allParams = $input.params()) \n {\n \"body-json\" : $input.json('$'),\n \"params\" : {\n #foreach($type in $allParams.keySet()) \n #set($params = $allParams.get($type)) \n \"$type\" : { \n #foreach($paramName in $params.keySet()) \n \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\" \n #if($foreach.hasNext),#end \n #end \n } \n #if($foreach.hasNext),#end \n#end \n},\n \"context\" : { \n \"http-method\" : \"$context.httpMethod\" \n } \n}" 
         IntegrationHttpMethod: POST
         IntegrationResponses:
           - StatusCode: 200

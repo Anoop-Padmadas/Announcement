@@ -1,4 +1,5 @@
 import boto3
+import os
 from errorHandler import createErrorResponse
 from CustomError import CustomError
 
@@ -8,7 +9,7 @@ def listAnnouncementProperty(event):
         dynamodb = boto3.resource('dynamodb')
         table = dynamodb.Table('AnnouncementTable')
         #Initialize default Limit
-        limit = 5
+        limit = int(os.environ['defaultLimit'])
         #check if there is query string paramter
         if(event['params']['querystring'] == {}):
             #get Announcements by default Limit
