@@ -184,6 +184,9 @@ Resources:
       HttpMethod: GET
       ResourceId: !Ref AnnouncementMSAPIResource
       RestApiId: !Ref AnnouncementMicroServiceApi
+      RequestParameters: 
+         method.request.querystring.limit: 'false'
+         method.request.querystring.offset: 'false'
       MethodResponses:
         - StatusCode: 200
       Integration:
