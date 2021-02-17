@@ -4,7 +4,7 @@ from errorHandler import createErrorResponse
 
 def lambda_handler(event, context):
     try:
-        #get method type and route based on methodType
+        #get method type based on methodType
         methodType = event['context']['http-method']      
         if methodType == 'GET':
             #Call list Announcements Function
