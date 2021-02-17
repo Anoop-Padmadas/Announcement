@@ -101,7 +101,7 @@ Resources:
       Name: AnnouncementMicroServiceApi
       EndpointConfiguration:
         Type: EDGE
-      StageName: DEV    
+      StageName: TEST    
       DefinitionBody:
         Fn::Transform:
             Name: AWS::Include
