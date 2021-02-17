@@ -101,7 +101,7 @@ Resources:
       Name: AnnouncementMicroServiceApi
       EndpointConfiguration:
         Type: EDGE
-      StageName: v1    
+      StageName: DEV    
       DefinitionBody:
         Fn::Transform:
             Name: AWS::Include
@@ -138,14 +138,14 @@ Resources:
         Enabled: 'true'
         StageKeys:
          -  RestApiId: !Ref AnnouncementMicroServiceApi
-            StageName: v1
+            StageName: DEV
   UsagePlan:
     Type: 'AWS::ApiGateway::UsagePlan'
     DependsOn: ApiKey
     Properties:
         ApiStages: 
             - ApiId: !Ref AnnouncementMicroServiceApi
-              Stage: v1
+              Stage: DEV
         Description: Announcement usage plan
         UsagePlanName: Announcement_UsagePlan
   UsagePlanKey:
