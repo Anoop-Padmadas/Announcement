@@ -1,6 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
 Description: AnnouncementServicePipeLine
+Parameters:
+    S3BucketName:
+        Type: String
+        Description: 'announcement-stack-template'
+        Default: 'announcement-stack-template'
 Resources:
   AnnouncementUserPool:
     Type: 'AWS::Cognito::UserPool'
@@ -91,149 +96,32 @@ Resources:
   #    Runtime: python3.8
   #    Role: !GetAtt AnnouncementMSIAMRole.Arn
   AnnouncementMicroServiceApi:
-    Type: 'AWS::ApiGateway::RestApi'
+    Type: 'AWS::Serverless::Api'
     Properties:
       Name: AnnouncementMicroServiceApi
       EndpointConfiguration:
-        Types:
-          - EDGE
+        Type: EDGE
+      StageName: TEST    
+      DefinitionBody:
+        Fn::Transform:
+            Name: AWS::Include
+            Parameters:
+                Location: 
+                    Fn::Join:
+                      - ''
+                      - - 's3://'
+                        - Ref: S3BucketName
+                        - '/swagger.yaml'
     DependsOn:
       - AnnouncementMicroService
       - AnnouncementDomain
-  AnnouncementCognitoAuthorizer:
-    Type: 'AWS::ApiGateway::Authorizer'
-    Properties:
-      Name: AnnouncementCognito
-      Type: COGNITO_USER_POOLS
-      ProviderARNs: 
-        - !GetAtt AnnouncementUserPool.Arn
-      IdentitySource: method.request.header.Authorization
-      RestApiId: !Ref AnnouncementMicroServiceApi
-    DependsOn: AnnouncementMicroServiceApi
-  AnnouncementMSAPIResource:
-    Type: 'AWS::ApiGateway::Resource'
-    Properties:
-      RestApiId: !Ref AnnouncementMicroServiceApi
-      PathPart: announcements
-      ParentId: !GetAtt 
-        - AnnouncementMicroServiceApi
-        - RootResourceId
-    DependsOn: AnnouncementMicroServiceApi
-  AnnouncementCreateModel:
-    Type: 'AWS::ApiGateway::Model'
-    Properties: 
-      ContentType: application/json
-      Name: AnnouncementCreateModel
-      RestApiId: !Ref AnnouncementMicroServiceApi
-      Schema: 
-        $schema: 'http://json-schema.org/draft-04/schema#'
-        title: AnnouncementCreateModel
-        type: object
-        properties:
-         announcement:
-          type: object
-          properties: 
-            title:
-              type: string
-            description: 
-              type: string
-          required: 
-          - title
-          - description
-        required:
-        - announcement
-    DependsOn: AnnouncementMSAPIResource
-  AnnouncementRequestValidator:
-    Type: 'AWS::ApiGateway::RequestValidator'
-    Properties: 
-      Name: AnnouncementRequestValidator
-      RestApiId: !Ref AnnouncementMicroServiceApi
-      ValidateRequestBody: 'true'
-    DependsOn: AnnouncementMSAPIResource
-  AnnouncementPOSTMethod:
-    Type: 'AWS::ApiGateway::Method'
-    Properties:
-      AuthorizationType: COGNITO_USER_POOLS
-      ApiKeyRequired: 'false'
-      AuthorizerId: !Ref AnnouncementCognitoAuthorizer
-      AuthorizationScopes: 
-        - announcement/Post
-      HttpMethod: POST
-      RequestModels: 
-        application/json: !Ref AnnouncementCreateModel
-      RequestValidatorId: !Ref AnnouncementRequestValidator
-      ResourceId: !Ref AnnouncementMSAPIResource
-      RestApiId: !Ref AnnouncementMicroServiceApi
-      MethodResponses:
-        - StatusCode: 200
-      Integration:
-        PassthroughBehavior: WHEN_NO_TEMPLATES
-        RequestTemplates: 
-           "application/json": "#set($allParams = $input.params()) \n {\n \"body-json\" : $input.json('$'),\n \"params\" : {\n #foreach($type in $allParams.keySet()) \n #set($params = $allParams.get($type)) \n \"$type\" : { \n #foreach($paramName in $params.keySet()) \n \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\" \n #if($foreach.hasNext),#end \n #end \n } \n #if($foreach.hasNext),#end \n#end \n},\n \"context\" : { \n \"http-method\" : \"$context.httpMethod\" \n } \n}"
-        IntegrationHttpMethod: POST
-        IntegrationResponses:
-          - StatusCode: 200
-        Type: AWS
-        Uri: !Sub 
-          - >-
-            arn:aws:apigateway:${AWS::Region}:lambda:path//2015-03-31/functions/${LambdaFunctionARN}/invocations
-          - LambdaFunctionARN: !GetAtt AnnouncementMicroService.Arn
-    DependsOn: AnnouncementCreateModel
-  AnnouncementGetMethod:
-    Type: 'AWS::ApiGateway::Method'
-    Properties:
-      AuthorizationType: COGNITO_USER_POOLS
-      ApiKeyRequired: 'false'
-      AuthorizerId: !Ref AnnouncementCognitoAuthorizer
-      AuthorizationScopes: 
-       - announcement/Get
-      HttpMethod: GET
-      ResourceId: !Ref AnnouncementMSAPIResource
-      RestApiId: !Ref AnnouncementMicroServiceApi
-      RequestParameters: 
-         method.request.querystring.limit: 'false'
-         method.request.querystring.offset: 'false'
-      MethodResponses:
-        - StatusCode: 200
-      Integration:
-        PassthroughBehavior: WHEN_NO_TEMPLATES
-        RequestTemplates: 
-           "application/json": "#set($allParams = $input.params()) \n {\n \"body-json\" : $input.json('$'),\n \"params\" : {\n #foreach($type in $allParams.keySet()) \n #set($params = $allParams.get($type)) \n \"$type\" : { \n #foreach($paramName in $params.keySet()) \n \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\" \n #if($foreach.hasNext),#end \n #end \n } \n #if($foreach.hasNext),#end \n#end \n},\n \"context\" : { \n \"http-method\" : \"$context.httpMethod\" \n } \n}" 
-        IntegrationHttpMethod: POST
-        IntegrationResponses:
-          - StatusCode: 200
-        Type: AWS
-        Uri: !Sub 
-          - >-
-            arn:aws:apigateway:${AWS::Region}:lambda:path//2015-03-31/functions/${LambdaFunctionARN}/invocations
-          - LambdaFunctionARN: !GetAtt AnnouncementMicroService.Arn
-    DependsOn: AnnouncementMSAPIResource
-  AnnouncementApiDeploymentV1:
-    Type: 'AWS::ApiGateway::Deployment'
-    Properties:
-      RestApiId: !Ref AnnouncementMicroServiceApi
-      StageDescription: 
-            Description: TEST Stage
-            MethodSettings: 
-                - ResourcePath: /
-                  HttpMethod: GET
-                  MetricsEnabled: 'true'
-                  DataTraceEnabled: 'false'
-                - ResourcePath: /
-                  HttpMethod: POST
-                  MetricsEnabled: 'true'
-                  DataTraceEnabled: 'false'
-      StageName: TEST
-    DependsOn:
-      - AnnouncementPOSTMethod
-      - AnnouncementGetMethod
   APIPermission:
     Type: 'AWS::Lambda::Permission'
     Properties:
       Action: 'lambda:InvokeFunction'
       FunctionName: !GetAtt AnnouncementMicroService.Arn
       Principal: apigateway.amazonaws.com
-    DependsOn: AnnouncementApiDeploymentV1
+    DependsOn: AnnouncementMicroServiceApi
   #APIGetPermission:
   #  Type: 'AWS::Lambda::Permission'
   #  Properties:
