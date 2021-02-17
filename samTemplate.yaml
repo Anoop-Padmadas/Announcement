@@ -148,7 +148,7 @@ Resources:
               Stage: v1
         Description: Announcement usage plan
         UsagePlanName: Announcement_Service_UsagePlan
-  UsagePlanKey:
+  AnnouncementUsagePlanKey:
      Type: 'AWS::ApiGateway::UsagePlanKey'
      Properties:
        KeyId: !Ref AnnouncementServiceApiKey
