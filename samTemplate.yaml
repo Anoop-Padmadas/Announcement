@@ -101,7 +101,7 @@ Resources:
       Name: AnnouncementMicroServiceApi
       EndpointConfiguration:
         Type: EDGE
-      StageName: DEV    
+      StageName: v1    
       DefinitionBody:
         Fn::Transform:
             Name: AWS::Include
@@ -129,32 +129,6 @@ Resources:
   #    FunctionName: !GetAtt AnnouncementGetService.Arn
   #    Principal: apigateway.amazonaws.com
   #  DependsOn: AnnouncementApiDeploymentV1
-  AnnouncementServiceApiKey:
-    Type: 'AWS::ApiGateway::ApiKey'
-    DependsOn: AnnouncementMicroServiceApi
-    Properties: 
-        Name: AnnouncementServiceApiKey
-        Description: Announcement Service API Key
-        Enabled: 'true'
-        StageKeys:
-         -  RestApiId: !Ref AnnouncementMicroServiceApi
-            StageName: DEV
-  AnnouncementUsagePlan:
-    Type: 'AWS::ApiGateway::UsagePlan'
-    DependsOn: AnnouncementServiceApiKey
-    Properties:
-        ApiStages: 
-            - ApiId: !Ref AnnouncementMicroServiceApi
-              Stage: DEV
-        Description: Announcement usage plan
-        UsagePlanName: Announcement_Service_UsagePlan
-  AnnouncementUsagePlanKey:
-     Type: 'AWS::ApiGateway::UsagePlanKey'
-     Properties:
-       KeyId: !Ref AnnouncementServiceApiKey
-       KeyType: API_KEY
-       UsagePlanId: !Ref AnnouncementUsagePlan
-     DependsOn: AnnouncementUsagePlan
   AnnouncementTable:
     Type: 'AWS::DynamoDB::Table'
     Properties:
