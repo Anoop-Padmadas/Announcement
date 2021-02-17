@@ -131,7 +131,7 @@ Resources:
   #  DependsOn: AnnouncementApiDeploymentV1
   ApiKey:
     Type: 'AWS::ApiGateway::ApiKey'
-    DependsOn: AnnouncementApiDeploymentV1
+    DependsOn: AnnouncementMicroServiceApi
     Properties: 
         Name: AnnouncementApiKey
         Description: Announcement MicroService API Key
