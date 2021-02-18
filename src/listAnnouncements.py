@@ -30,17 +30,30 @@ def listAnnouncementProperty(event):
                 response = table.scan(ExclusiveStartKey = indexId,Limit=limit)
             else:
                 response = table.scan(Limit = limit)
-
+        
+        announcements =   response['Items']
+        
+        #create list of announcements by re arranging elements        
+        announcementList = []
+        for i in range(len(announcements)):
+            newAnnouncement = {}
+            announcement = announcements[i]
+            newAnnouncement["id"] = announcement["id"]
+            newAnnouncement["announcementTitle"] = announcement["announcementTitle"]
+            newAnnouncement["announcementDescription"] = announcement["announcementDescription"]
+            newAnnouncement["announcementDate"] = announcement["announcementDate"]
+            announcementList.append(newAnnouncement)
+            
         # Check if it is of last results returned
         if ('LastEvaluatedKey' in response):
             lastEvaluatedKey = response['LastEvaluatedKey']
         else:
             lastEvaluatedKey = None
             
-        announcements =   response['Items']
+        
         #Construct response Data
         responseData = {}
-        responseData['announcements'] = announcements
+        responseData['announcements'] = announcementList
 
         #Construct MetaData
         metaData = {}
